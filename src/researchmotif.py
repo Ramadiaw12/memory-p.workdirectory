@@ -1,14 +1,15 @@
-from Bio import SeqIO
+from Bio import SeqIO  # Importation de Biopython pour lire les fichiers FASTA
 
-# Valid sequences
-seq_nucleotide = set("ATCG")
+motif = "ATG"  # Le motif à rechercher
 
-for record in SeqIO.parse("data/example.fasta", "fasta-blast"):
-    # Regarder dans la séquences
-    sequence = str(record.seq).upper()
-
-# Check if the sequences
-    if set(sequence).issubset(seq_nucleotide):
-        print(f"{record.id} : Séquence VALIDE")
-    else:
-        print(f"{record.id} : Séquence NON VALIDE")
+# Parcours de séquence du fichier FASTA
+for record in SeqIO.parse("data/example.fasta", "fasta"):
+    seq = str(record.seq)
+    positions = []  # Initialisation d'une liste vide pour stocker les positions du motif
+    for i in range(len(seq)):
+        # On regarde à chaque position de la séquence si les 4 letters qui suivent correspondent au motif
+        if seq[i:i+len(motif)] == motif:
+            positions.append(i)  # Si oui, on ajoute la position à la liste
+        # else:
+        #     print("Aucune motif trouvé")
+    print(f"{record.id} : {positions}")  # On affiche l'identifiant de la séquence et la liste des positions
