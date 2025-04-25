@@ -6,7 +6,7 @@ import sys
 fasta_file = sys.argv[1]  # Premier argument après le nom du fichier: nom du fasta file
 motif = sys.argv[2]  # Deuxième argument le motif à rechercher
 
-if len(sys.argv) < 3:
+if (len(sys.argv) != 3):
     print("Erreur: veuillez entrer deux arguments le fichier fasta et le motif")
     sys.exit(1)  # Stop the program if we aren't enough program
 # Parcours de séquence du fichier FASTA
