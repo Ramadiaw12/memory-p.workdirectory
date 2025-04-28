@@ -13,5 +13,3 @@ print('Le nombre de base T est :', base_counts['T'])
 print('Le nombre de base C est :', base_counts['C'])
 print('Le nombre de base G est :', base_counts['G'])
 
-
-
