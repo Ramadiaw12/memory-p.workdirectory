@@ -3,7 +3,7 @@ from Bio import SeqIO
 # Valid sequences
 seq_nucleotide = set("ATCG")
 
-for record in SeqIO.parse("data/example.fasta", "fasta-blast"):
+for record in SeqIO.parse("data/example.fasta", "fasta"):
     # Regarder dans la séquences
     sequence = str(record.seq).upper()
 
