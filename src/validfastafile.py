@@ -1,14 +1,17 @@
 from Bio import SeqIO
+import os
+import sys
+import gzip
 
-# Valid sequences
-seq_nucleotide = set("ATCG")
+file_path = sys.argv[1]
 
-for record in SeqIO.parse("data/example.fasta", "fasta"):
-    # Regarder dans la séquences
-    sequence = str(record.seq).upper()
+if not os.path.exists(file_path):
+    print(f"Erreur : le fichier '{file_path}' n'est pas un fichier valid ")
+    sys.exit(1)
+else:
+    # Valid sequences
+    for record in SeqIO.parse(gzip.open(file_path, 'rt', encoding='utf-8'), "fastq"):
+        print("C'est bien un fichier fastq valid!")
 
-# Check if the sequences
-    if set(sequence).issubset(seq_nucleotide):
-        print(f"{record.id} : Séquence VALIDE")
-    else:
-        print(f"{record.id} : Séquence NON VALIDE")
+# for record in SeqIO.parse(file_path2, 'fasta'):
+#     print("C'est bien un fichier fasta valid !!!")
