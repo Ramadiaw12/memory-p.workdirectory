@@ -11,17 +11,17 @@ def statistic():
 
     file_path = sys.argv[1]
 
-    if not os.path.isfile(file_path):
+    if not os.path.exists(file_path):
         print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
         sys.exit(1)
     
     # Détection du format et ouverture du fichier en fonction
-    if sys.argv[1].endswith(".fasta.gz"):
+    if file_path.endswith(".fasta.gz"):
         file_format = "fasta"
-        handle = gzip.open(sys.argv[1], "rt")  # lecture texte
-    elif sys.argv[1].endswith(".fasta"):
+        handle = gzip.open(file_path, "rt")  # lecture texte
+    elif file_path.endswith(".fasta"):
         file_format = "fasta"
-        handle = open(sys.argv[1], "r")  # lecture
+        handle = open(file_path, "r")  # lecture
     else:
         print("Format non reconnu. Utilisez un fichier .fasta ou .fasta.gz")
         sys.exit(1)  
