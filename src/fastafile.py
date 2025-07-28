@@ -138,6 +138,118 @@ def size_nb_seq (file_path):
         total_len += len(seq)
     print(f"Nombre total de séquences : {nb_seq}")
     print(f"Taille totale des séquences : {total_len} bases")
+# Filtrer  # minimum 100 nucléotide # ou None pour pas de maximum
+def filter_size(file_path, min_length = 90, max_length = 2000):
+    file_format, handle = detect_format_and_open(file_path)
+    # Paramètres de filtrage. les séquences entre 200 et 1000
+     
+    print("Veuillez entrer la longueur minimal et la longueur maximal que vous voulez filtrer : ")
+    try:
+        min_length = int(input("Entrez la longueur minimale : "))
+    except ValueError:
+        print("Valeur minimale invalide. Utilisation de 90 par défaut.")
+        min_length = 90
+    #Check si le user a entré une chaine vide ou une chaine qui contient des espaces
+    max_input = input("Entrez la longueur maximale  : ")
+    if max_input.strip() == "": # Il enlève les espaces si la chaine contient des espaces
+        max_length = None # Si aucune valeur max n'est indiqué alors on accepte tout valeur au dessu de min_length
+    else:
+        # Si le user fait entrer une chaine, on convertit en Integers
+        try:
+            max_length = int(max_input)
+        # Si la valeur entrée est une erreur on lui donne la valeur par defaut
+        except ValueError:
+            print("Valeur maximale invalide. Utilisation de 2000 par défaut.")
+            max_length = 2000
+    
+    # Iniitialisation des variables
+    total_sequences = 0
+    sequences_conserves = 0
+    for record in SeqIO.parse(handle, file_format):
+        total_sequences +=1
+        seq_length = len(record.seq)
+        if seq_length >= min_length:  
+            if max_length is None or seq_length <= max_length: # Conserve toutes séquences supérieur à min_length et les seq inférieur ou égal à max_length
+                sequences_conserves += 1 # Compte les sequences concervées 
+    # Résultat
+    print(f"Nombre total de séquences : {total_sequences}")
+    print(f"Nombre de séquences conservées après filtrage : {sequences_conserves}")
+
+# Filtrage du GC content
+def gc_filter(file_path):
+    file_format, handle = detect_format_and_open(file_path)
+
+    try:
+        min_gc = float(input("Entrez le pourcentage GC minimal (ex: 20.7) : "))
+        max_gc = float(input("Entrez le pourcentage GC maximal (ex: 60.0) : "))
+    except ValueError:
+        print("Entrée invalide. Utilisez des nombres valides.")
+        return
+
+    min_gc /= 100  # On convertit en fraction)
+    max_gc /= 100
+
+    total = 0
+    conservées = 0
+
+    print("\nSéquences conservées (entre les seuils de GC) :\n")
+
+    for record in SeqIO.parse(handle, file_format):
+        total += 1
+        gc = gc_fraction(record.seq)  # donne un float entre 0 et 1
+        if min_gc <= gc <= max_gc:
+            conservées += 1
+            print(f">{record.id} | GC: {round(gc * 100, 2)}%")
+
+    print("\nRésultat du filtrage GC :")
+    print(f"Nombre total de séquences : {total}")
+    print(f"Nombre de séquences conservées : {conservées}")
+
+# Extraction des sous sequences
+def sub_seq(file_path):
+    file_format, handle = detect_format_and_open(file_path)
+    # for record in SeqIO.parse(handle, file_format):
+    #     print("Séquences disponibles :")
+
+    # Parcours et lit le fichier . Charge toutes les séquences dans une liste
+    sequences = list(SeqIO.parse(handle, file_format))
+
+    # Affiche la liste des IDs disponibles
+    for idx, record in enumerate(sequences):
+        print(f"{idx + 1}. ID = {record.id}")
+
+    # Demande à l'utilisateur de choisir une séquence
+    choix = input("Entrez le numéro ou l'ID de la séquence à analyser : ")
+
+    sequence_choisie = None
+
+    # Si l'utilisateur entre un numéro
+    if choix.isdigit():
+        index = int(choix) - 1
+        if 0 <= index < len(sequences):
+            sequence_choisie = sequences[index]
+        else:
+            print("Numéro invalide.")
+            sys.exit(1)
+    else:
+        # Si l'utilisateur entre un ID
+        for record in sequences:
+            if record.id == choix:
+                sequence_choisie = record
+                break
+        if sequence_choisie is None:
+            print("ID non trouvé.")
+            sys.exit(1)
+
+    start = 10
+    end = 30
+
+        
+    sous_sequence = record.seq[start-1:end]  # -1  les index Python commencent à 0
+    print(f"La sequence {sequence_choisie.id} a pour sous-séquence ({start}-{end}) : {sous_sequence}")
+
+
+
 
 # Choix de l'utilisateur
 # La fonction principale
@@ -159,7 +271,7 @@ def main():
     print("4. Rechercher la taille et le nombre de sequence")
 
 
-    choix = input("Votre choix (1/2/3/4) : ")
+    choix = input("Votre choix (1/2/3/4/5/6/7) : ")
 
     # A ffichage du GC content
     if choix == "1":
@@ -202,6 +314,20 @@ def main():
     # Affichage de la taille et du nombre de sequence
     elif choix == "4":
         size_nb_seq(file_path)
+
+    # Affichage des sequences filtrées par Taille
+    elif choix == "5":
+        filter_size(file_path)
+    # Affichage du teneur en GC conservé apres filtrage
+    elif choix == "6":
+        gc_filter(file_path)
+    
+
+    # Affichage des sous sequences de la sequence choisie
+    elif choix == "7":
+        sub_seq(file_path)    
+
+
     else:
         print("Choix invalide.")
 
