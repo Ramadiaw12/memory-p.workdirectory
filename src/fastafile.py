@@ -22,32 +22,23 @@ def detect_format_and_open(file_path):
 
 def calcul_gc(file_path):
     file_format, handle = detect_format_and_open(file_path)
-    if len(sys.argv) < 2:
-        print("Veuillez vérifier le nombre d'arguments. Exemple: python filename.py data/monfichier.fasta")
-        sys.exit(1)
+    # if len(sys.argv) < 2:
+    #     print("Veuillez vérifier le nombre d'arguments. Exemple: python filename.py data/monfichier.fasta")
+    #     sys.exit(1)
 
-    file_path = sys.argv[1]
+    # file_path = sys.argv[1]
 
-    if not os.path.exists(file_path):
-        print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
-        sys.exit(1)
+    # if not os.path.exists(file_path):
+    #     print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
+    #     sys.exit(1)
     
     
-    # Détection du format et ouverture du fichier en fonction
-    # if file_path.endswith(".fasta.gz"):
-    #     file_format = "fasta"
-    #     handle = gzip.open(file_path, "rt")  # lecture texte
-    # elif file_path.endswith(".fasta"):
-    #     file_format = "fasta"
-    #     handle = open(file_path, "r")  # lecture
-    # else:
-    #     print("Format non reconnu. Utilisez un fichier .fasta ou .fasta.gz")
-    #     sys.exit(1)  
     # Initialisation des variables
     total_gc = 0
     total_length = 0
     nb_sequences = 0
 
+    # Parcours le fichier et lit le fichier
     for record in SeqIO.parse(handle, file_format):
         seq = record.seq
         gc = gc_fraction(seq)
@@ -133,39 +124,59 @@ def search_motif(file_path, motif, mode='all', specific_id=None):
             print(f"\nMotif '{motif}' NON trouvé dans la séquence {seq_id}.")
         
         return {seq_id: positions}
+    
+# Affichage de la taille et du nombre de sequence
+def size_nb_seq (file_path):
+    file_format, handle = detect_format_and_open(file_path)
+    # Initialisation des variables
+    total_len = 0  
+    nb_seq = 0
 
+    for record in SeqIO.parse(handle, file_format):
+        seq = record.seq
+        nb_seq +=1
+        total_len += len(seq)
+    print(f"Nombre total de séquences : {nb_seq}")
+    print(f"Taille totale des séquences : {total_len} bases")
 
 # Choix de l'utilisateur
-
+# La fonction principale
 def main():
+    # Vérification des fichiers entrés
     if len(sys.argv) < 2:
-        print("Usage : python script.py chemin/vers/fichier.fasta(.gz)")
+        print("Erreur : Veuillez vérifier le nombre d'arguments. Exemple: chemin/vers/fichier.fasta(.gz)")
         sys.exit(1)
 
     file_path = sys.argv[1]
     if not os.path.exists(file_path):
-        print("Fichier non trouvé.")
+        print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
         sys.exit(1)
 
     print("\nQue souhaitez-vous faire ?")
     print("1. Calculer la teneur en GC")
     print("2. Rechercher un motif dans toutes les séquences")
     print("3. Rechercher un motif dans une séquence spécifique")
+    print("4. Rechercher la taille et le nombre de sequence")
 
-    choix = input("Votre choix (1/2/3) : ")
 
+    choix = input("Votre choix (1/2/3/4) : ")
+
+    # A ffichage du GC content
     if choix == "1":
         calcul_gc(file_path)
+    # Affichage des positions du motif du fichier
     elif choix == "2":
         motif = input("Entrez le motif à rechercher : ").upper()
         search_motif(file_path, motif, mode='all')
+    # Afiichage des positions du motif de la sequence choisit
     elif choix == "3":
         motif = input("Entrez le motif à rechercher : ").upper()
+    
+
 
         # Lire les séquences
         file_format, handle = detect_format_and_open(file_path)
         sequences = list(SeqIO.parse(handle, file_format))
-        handle.close()
 
         # Vérifier qu'on a des séquences
         if not sequences:
@@ -188,6 +199,9 @@ def main():
 
         # Lancer la recherche
         search_motif(file_path, motif, mode='specific_sequence', specific_id=specific_id)
+    # Affichage de la taille et du nombre de sequence
+    elif choix == "4":
+        size_nb_seq(file_path)
     else:
         print("Choix invalide.")
 
