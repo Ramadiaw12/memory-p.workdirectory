@@ -3,6 +3,7 @@ import os
 import gzip
 from Bio.SeqUtils import gc_fraction
 from Bio import SeqIO
+from collections import Counter
 
 # Détection du format et ouverture du fichier en fonction
 
@@ -16,21 +17,12 @@ def detect_format_and_open(file_path):
     elif file_path.endswith(".fastq"):
         return "fastq", open(file_path, "r")
     else:
-        raise ValueError("Format non reconnu. Utilisez un fichier .fasta ou .fastq")
+        raise ValueError("Format non reconnu. Utilisez un fichier .fasta(.gz) ou .fastq(.gz)")
 
 
 
 def calcul_gc(file_path):
     file_format, handle = detect_format_and_open(file_path)
-    # if len(sys.argv) < 2:
-    #     print("Veuillez vérifier le nombre d'arguments. Exemple: python filename.py data/monfichier.fasta")
-    #     sys.exit(1)
-
-    # file_path = sys.argv[1]
-
-    # if not os.path.exists(file_path):
-    #     print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
-    #     sys.exit(1)
     
     
     # Initialisation des variables
@@ -38,31 +30,90 @@ def calcul_gc(file_path):
     total_length = 0
     nb_sequences = 0
 
-    # Parcours le fichier et lit le fichier
+    # Affichage par defaut du statistique du fichier total
     for record in SeqIO.parse(handle, file_format):
         seq = record.seq
         gc = gc_fraction(seq)
-        gc_percent = gc * 100
-
-        # Le pourcentage de GC de chaque sequence
-        print(f"Le pourcentage de GC de {record.id} est de : {gc_percent:.2f}%")
-
-        # Le teneur en GC global
         total_gc += gc * len(seq)
         total_length += len(seq)
         nb_sequences += 1
 
+        # Fermeture delz lecture apres exécution
+        handle.close()
     if nb_sequences == 0:
-        print("Aucune séquence trouvée dans le fichier.")
-        sys.exit(1)
+            print("Aucune séquence trouvée dans le fichier.")
+            sys.exit(1)
 
     global_gc_percent = (total_gc / total_length) * 100
 
+    # Résultat
     print(f"Nombre de séquences analysées : {nb_sequences}")
     print(f"Teneur globale en GC : {global_gc_percent:.2f}%")
+    print(f"Le nombre total de lecture est : {total_length}")
+
+
+    # Choix de l'utilisateur
+    choise_user = input("Vous voulez le teneur en GC de toutes les sequences ou d'une sequence spécifique ? Yes/No").strip().lower()
+    file_format, handle = detect_format_and_open(file_path)
+    if choise_user == "Oui" :
+        # Teneur en GC d'une sequence spécifique
+        # Parcours et lit le fichier . Charge toutes les séquences dans une liste
+        sequences = list(SeqIO.parse(handle, file_format))
+
+        # Affiche la liste des IDs disponibles
+        print("Séquences disponibles :")
+        for idx, record in enumerate(sequences):
+            print(f"{idx + 1}. ID = {record.id}")
+
+        # Demande à l'utilisateur de choisir une séquence
+        choix = input("Entrez le numéro ou l'ID de la séquence à analyser : ")
+
+        sequence_choisie = None
+        # Si l'utilisateur entre un numéro
+        if choix.isdigit():
+            index = int(choix) - 1
+            if 0 <= index < len(sequences):
+                sequence_choisie = sequences[index]
+            else:
+                print("Numéro invalide.")
+                sys.exit(1)
+        else:
+            # Si l'utilisateur entre un ID
+            for record in sequences:
+                if record.id == choix:
+                    sequence_choisie = record
+                    break
+            if sequence_choisie is None:
+                print("ID non trouvé.")
+                sys.exit(1)
+        
+        seq = str(sequence_choisie.seq).upper()
+        gc_percent = gc_fraction(seq) * 100
+        lenght = len(sequence_choisie)
+
+        # Resultats
+        print(f"ID de la séquence : {sequence_choisie.id}")
+        # Affiche de la taille des lectures
+        print(f"La longueur de la sequence choisie est {lenght} bases")
+        # Le pourcentage de GC
+        print(f"Le contenu en GC est : {gc_percent:.2f}%")
+    elif choise_user == "Non" :
+
+        # Parcours le fichier et lit le fichier
+        for record in SeqIO.parse(handle, file_format):
+            seq = record.seq
+            gc_percent = gc_fraction(seq) * 100
+
+            # Le pourcentage de GC de chaque sequence
+            print(f"Le pourcentage de GC de {record.id} est de : {gc_percent:.2f}%")
+
+            
+    else :
+        print (f"Erreur! Veuillez choisir entre Oui ou Non")
+        sys.exit(1)
+
 
 # Recherche de motif
-
 # Affichage des positions de motif du fichier
 def find_motif_all(sequences, motif):
     results = {}
@@ -249,11 +300,158 @@ def sub_seq(file_path):
     print(f"La sequence {sequence_choisie.id} a pour sous-séquence ({start}-{end}) : {sous_sequence}")
 
 
+# Statistique generale de base 
+def stats_seq(file_path):
+    file_format, handle = detect_format_and_open(file_path)
+
+    # Initialisation des variables
+    total_gc = 0
+    total_length = 0
+    nb_sequences = 0
+    lengths = []
+    base_counts = Counter()
+
+    
+    # Parcours et lit le fichier . Charge toutes les séquences dans une liste
+    for record in SeqIO.parse(handle, file_format):
+        # Attributtion des differents variables
+        seq = str(record.seq).upper()
+        seq_len = len(seq)
+
+        # Les exécutions
+        total_gc += gc_fraction(seq) * seq_len
+        total_length += seq_len
+        nb_sequences += 1
+        lengths.append(seq_len)
+        #  Rapport de base
+        # Déclaration et Initialisation des bases
+        # Parcourir notre fichier fasta et lit la séquence
+        # Parcours la séquence (record.seq issue de l'objet Seqreccord)
+        base_counts.update(seq)  # majuscules pour harmoniser
+        base_report = " "
+    for base, count in base_counts.items():
+        base_report += f"Le nombre de base {base} est : {count}\n"
 
 
-# Choix de l'utilisateur
+    if nb_sequences == 0:
+            print(f"Aucune sequence n'est retrouvé")  
+            return 
+    # taille des sequences du fichier entré
+    global_gc_percent = (total_gc / total_length) * 100
+
+    min_len = min(lengths)
+    max_len = max(lengths)
+    # Average c'est à dire le teneur 
+    avg_len = sum(lengths) / len(lengths)
+
+    
+
+    # Ci-joint le statistisque détaillé sur les sequences du fichiers :)
+    # Texte à afficher et enregistrer
+    stats_text = (
+        "\nStatistiques des séquences : \n"
+        f"Nombre total de séquences : {nb_sequences}\n"
+        f"Longueur totale du fichier : {total_length}\n"
+        f"Teneur globale en GC : {global_gc_percent:.2f}%\n"
+        f"Longueur minimale : {min_len} nt\n"
+        f"Longueur maximale : {max_len} nt\n"
+        f"Longueur moyenne : {avg_len:.2f} nt\n"
+        # L'affichage des rapports de base dans la séquence
+        f"{base_report}"        
+    )
+
+    # Affichage dans le terminal
+    print(stats_text)
+
+    # Demander à l'utilisateur le nom du fichier de sortie
+    output_filename = input("Entrez le nom du fichier de sortie (ex: resultats.txt) : ").strip()
+
+    # Écriture dans le fichier
+    try:
+        with open(output_filename, "w") as output_file:
+            output_file.write(stats_text)
+        print(f"Les résultats ont été enregistrés dans : {output_filename}")
+        # Gestion d'erreur
+    except IOError:
+        print("Erreur lors de l'enregistrement du fichier.")
+
+
+# La conversion de fichier FASTQ et fichier FASTA
+def conversion_format(input_file):
+    # Récupération du fichier en argument
+    input_file = sys.argv[1]
+    # Vérifie que l'utilisateur a bien passé un argument
+    if len(sys.argv) < 2:
+        print("Veuillez vérifier le nombre d'argument ecrite. Exemple: python filename.py data/monfichier.fasta")
+        sys.exit(1)
+
+    # Vérifie si le fichier existe et est un fichier
+    if not os.path.isfile(input_file):
+        print(f"Erreur : le fichier '{input_file}' n'existe pas ou est invalide.")
+        sys.exit(1)
+
+    # Detection de format et Ouverture
+    if input_file.endswith(".fastq.gz"):
+        file_format = "fastq"
+        handle = gzip.open(input_file, "rt")  # lecture texte
+    elif input_file.endswith(".fastq"):
+        file_format = "fastq"
+        handle = open(input_file, "r")  # lecture
+    else:
+        print("Format non reconnu. Utilisez un fichier .fasta ou .fastq")
+        sys.exit(1)
+        
+    # Lecture des séquences
+    sequences = list(SeqIO.parse(handle, file_format))
+    handle.close()
+
+    # Création du fichier de sortie
+    output_file = os.path.splitext(input_file)[0] + "_converted.fasta"
+
+    # Écriture en format FASTA
+    count = SeqIO.write(sequences, output_file, "fasta")
+
+    print(f"{count} séquences ont été converties et enregistrées dans '{output_file}'.")
+
+
+
+
+# La fonction qui aide le user
+def help():
+    print(main.__doc__)
+
+
+
 # La fonction principale
 def main():
+    """
+
+    Documentation de GenoTools
+
+    Pour voir comment utiliser GenoTools : python3 GenoTools --help
+
+    Pour executer GenoTools : python3 GenoTools filename
+
+    filename    peut une fichier .fasta, fasta.gz; .fastq, .fastq.gz
+
+    La première commande de GenoTools  permet de faire : 
+
+        1. Calculer la teneur en GC
+        2. Rechercher un motif dans toutes les séquences
+        3. Rechercher un motif dans une séquence spécifique
+        4. Rechercher la taille et le nombre de sequence
+        5. Rechercher les sequences filtrées par Taille
+        6. Rechercher le teneur en GC conservé apres filtrage
+        7. Rechercher la sous sequences de la sequence choisie
+        8. Rechercher le statistique Général
+        9. Faire la Convertion d'un fichier FASTQ en un fichier FASTA
+    Vous devez choisir entre ces differents nombres selon la fonctionnalité que vous souhaitez
+    
+
+    Références :
+
+
+    """
     # Vérification des fichiers entrés
     if len(sys.argv) < 2:
         print("Erreur : Veuillez vérifier le nombre d'arguments. Exemple: chemin/vers/fichier.fasta(.gz)")
@@ -263,15 +461,19 @@ def main():
     if not os.path.exists(file_path):
         print(f"ERREUR: le fichier {file_path} n'existe pas ou est invalide")
         sys.exit(1)
-
-    print("\nQue souhaitez-vous faire ?")
+    # Choix de l'utilisateur
+    print("\n Que souhaitez-vous faire ?")
     print("1. Calculer la teneur en GC")
     print("2. Rechercher un motif dans toutes les séquences")
     print("3. Rechercher un motif dans une séquence spécifique")
     print("4. Rechercher la taille et le nombre de sequence")
+    print("5. Rechercher les sequences filtrées par Taille")
+    print("6. Rechercher le teneur en GC conservé apres filtrage")
+    print("7. Rechercher la sous sequences de la sequence choisie")
+    print("8. Rechercher le statistique complète du choisie")
+    print("9. Convertion d'un fichier FASTQ en un fichier FASTA")
 
-
-    choix = input("Votre choix (1/2/3/4/5/6/7) : ")
+    choix = input("Votre choix (entre 1 et 9) : ")
 
     # A ffichage du GC content
     if choix == "1":
@@ -283,8 +485,6 @@ def main():
     # Afiichage des positions du motif de la sequence choisit
     elif choix == "3":
         motif = input("Entrez le motif à rechercher : ").upper()
-    
-
 
         # Lire les séquences
         file_format, handle = detect_format_and_open(file_path)
@@ -296,7 +496,7 @@ def main():
             sys.exit(1)
 
         # Afficher les IDs numérotés
-        print("\nSéquences disponibles :")
+        print("\n Séquences disponibles :")
         for idx, record in enumerate(sequences, start=1):
             print(f"{idx}. {record.id}")
 
@@ -327,9 +527,25 @@ def main():
     elif choix == "7":
         sub_seq(file_path)    
 
+    # Affichage du statistique complete
+    elif choix == "8":
+        sub_seq(file_path)    
+
+    # Affichage de la conversion de format
+    elif choix == "9":
+        conversion_format(file_path)
+
 
     else:
         print("Choix invalide.")
 
 if __name__ == "__main__":
-    main()
+
+    if sys.argv[1] == "--help" :
+        help()
+    else:
+        main()
+
+
+
+

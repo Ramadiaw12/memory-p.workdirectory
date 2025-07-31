@@ -1,0 +1,8 @@
+
+Statistiques des séquences : 
+Nombre total de séquences : 3218
+Longueur totale du fichier : 3505009
+Teneur globale en GC : 36.84%
+Longueur minimale : 74 nt
+Longueur maximale : 16587 nt
+Longueur moyenne : 1089.19 nt

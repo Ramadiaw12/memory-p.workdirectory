@@ -1,0 +1,12 @@
+
+Statistiques des séquences : 
+Nombre total de séquences : 33117
+Longueur totale du fichier : 8279250
+Teneur globale en GC : 53.33%
+Longueur minimale : 250 nt
+Longueur maximale : 250 nt
+Longueur moyenne : 250.00 nt
+Le nombre de base A est : 52
+Le nombre de base T est :, 55
+Le nombre de base C est :, 53
+Le nombre de base G est :, 90
