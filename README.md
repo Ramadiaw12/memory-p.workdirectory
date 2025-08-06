@@ -1,6 +1,11 @@
-# Motif Finder
-Un script biopython qui permet de rechercher un motif dans une sequences donnée.
+# NGS file manipulation - Tool4NGS
+
+A new project bioinformatics
+
+## Getting started
+
+This project is a starting point for preprocessing application .
 
 
-# Utilisation de son propre script pour la recherche de motif
-L'execution dans le terminal =>  python3 src/researchmotif.py fichier.fasta motif
+
+For help getting started with Tool4NGS, please type the following command  :python3 Tool4NGS --help
