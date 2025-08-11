@@ -210,7 +210,7 @@ def gc_filter(file_path):
         print("Entrée invalide. Utilisez des nombres valides.")
         return
 
-    min_gc /= 100  # On convertit en fraction)
+    min_gc /= 100  # On convertit en fraction
     max_gc /= 100
 
     total = 0
@@ -317,7 +317,6 @@ def stats_seq(file_path):
     avg_len = sum(lengths) / len(lengths)
 
     
-
     # Ci-joint le statistisque détaillé sur les sequences du fichiers :)
     # Texte à afficher et enregistrer
     stats_text = (
@@ -386,11 +385,9 @@ def conversion_format(input_file):
     print(f"{count} séquences ont été converties et enregistrées dans '{output_file}'.")
 
 
-   
+
 def help():
     print(main.__doc__)
-
-
 
 # La fonction principale
 def main():
@@ -445,7 +442,7 @@ def main():
     print("9. Convertion d'un fichier FASTQ en un fichier FASTA")
 
 
-    # 
+    #  Choix de l'utilisateur
     choix = input("Votre choix (Entre 1 et 9) : ")
 
     # A ffichage du GC content
