@@ -21,7 +21,7 @@ def detect_format_and_open(file_path):
         sys.exit(1)
 
 
-# Les teneurs en GC
+# 1- Les teneurs en GC
 def calcul_gc(file_path, afficher_par_sequence=False, sequence_choisie=None):
     file_format, handle = detect_format_and_open(file_path)
     sequences = list(SeqIO.parse(handle, file_format))
@@ -86,7 +86,7 @@ def calcul_gc(file_path, afficher_par_sequence=False, sequence_choisie=None):
 
 
 
-# Recherche de motif
+# 2- Recherche de motif
 # Affichage des positions de motif du fichier
 def find_motif_all(sequences, motif):
     results = {}
@@ -103,7 +103,7 @@ def find_motif_all(sequences, motif):
             results[seq_id] = positions
         # Affichage UNE SEULE FOIS après avoir traité toutes les séquences
     if results:
-        print(f"\nMotif '{motif}' trouvé dans {len(results)} séquence(s) :")
+        print(f"\nMotif '{motif}' trouvé dans {len(results)} séquences :")
         for idx, (seq_id, positions) in enumerate(results.items(), start=1):
             print(f"Les positions de la sequence {seq_id} sont  positions : {positions}")
     else:
@@ -112,7 +112,7 @@ def find_motif_all(sequences, motif):
     return results
     
 
-# Affichage des motifs de la sequence choisie
+# 3- Affichage des motifs de la sequence choisie
 def find_motif_in_sequence(sequences, motif, target_id):
     for record in sequences:
         if record.id == target_id:
@@ -149,7 +149,7 @@ def search_motif(file_path, motif, mode='all', specific_id=None):
         
         return {seq_id: positions}
     
-# Affichage de la taille et du nombre de sequence
+# 4- Affichage de la taille et du nombre de sequence
 def size_nb_seq (file_path):
     file_format, handle = detect_format_and_open(file_path)
     # Initialisation des variables
@@ -162,7 +162,7 @@ def size_nb_seq (file_path):
         total_len += len(seq)
     print(f"Nombre total de séquences : {nb_seq}")
     print(f"Taille totale des séquences : {total_len} bases")
-# Filtrer  # minimum 100 nucléotide # ou None pour pas de maximum
+# 5- Filtrer  # minimum 100 nucléotide # ou None pour pas de maximum
 def filter_size(file_path, min_length = 90, max_length = 2000):
     file_format, handle = detect_format_and_open(file_path)
     # Paramètres de filtrage. les séquences entre 200 et 1000
@@ -199,7 +199,7 @@ def filter_size(file_path, min_length = 90, max_length = 2000):
     print(f"Nombre total de séquences : {total_sequences}")
     print(f"Nombre de séquences conservées après filtrage : {sequences_conserves}")
 
-# Filtrage du GC content
+# 6- Filtrage du GC content
 def gc_filter(file_path):
     file_format, handle = detect_format_and_open(file_path)
 
@@ -229,25 +229,21 @@ def gc_filter(file_path):
     print(f"Nombre total de séquences : {total}")
     print(f"Nombre de séquences conservées : {conservées}")
 
-# Extraction des sous sequences
+# 7- Extraction de sous séquence
 def sub_seq(file_path):
     file_format, handle = detect_format_and_open(file_path)
-    # for record in SeqIO.parse(handle, file_format):
-    #     print("Séquences disponibles :")
+    handle = open(file_path, "r")
 
-    # Parcours et lit le fichier . Charge toutes les séquences dans une liste
     sequences = list(SeqIO.parse(handle, file_format))
 
     # Affiche la liste des IDs disponibles
     for idx, record in enumerate(sequences):
-        print(f"{idx + 1}. ID = {record.id}")
-
-    # Demande à l'utilisateur de choisir une séquence
+        print(f"{idx + 1} : {record.id}")
+    print("\n")
     choix = input("Entrez le numéro ou l'ID de la séquence à analyser : ")
 
     sequence_choisie = None
 
-    # Si l'utilisateur entre un numéro
     if choix.isdigit():
         index = int(choix) - 1
         if 0 <= index < len(sequences):
@@ -256,7 +252,6 @@ def sub_seq(file_path):
             print("Numéro invalide.")
             sys.exit(1)
     else:
-        # Si l'utilisateur entre un ID
         for record in sequences:
             if record.id == choix:
                 sequence_choisie = record
@@ -265,14 +260,24 @@ def sub_seq(file_path):
             print("ID non trouvé.")
             sys.exit(1)
 
-    start = 10
-    end = 30
+    try:
+        start = int(input("Position de début de la sous-séquence : "))
+        end = int(input("Position de fin de la sous-séquence : "))
+    except ValueError:
+        print("Entrées invalides pour les positions.")
+        sys.exit(1)
 
-        
-    sous_sequence = record.seq[start-1:end]  # -1  les index Python commencent à 0
-    print(f"La sequence {sequence_choisie.id} a pour sous-séquence ({start}-{end}) : {sous_sequence}")
+    # Vérification des limites
+    seq_len = len(sequence_choisie.seq)
+    if start < 1 or end > seq_len or start > end:
+        print(f"Positions invalides. Longueur de la séquence : {seq_len}")
+        sys.exit(1)
 
-# Statistique generale de base 
+    sous_sequence = sequence_choisie.seq[start-1:end]  # Indices Python 0-based, fin exclu
+    print(f"La séquence {sequence_choisie.id} a pour sous-séquence ({start}-{end}) : {sous_sequence}")
+
+    handle.close()
+# 8- Statistique generale de base 
 def stats_seq(file_path):
     file_format, handle = detect_format_and_open(file_path)
 
@@ -295,9 +300,8 @@ def stats_seq(file_path):
         total_length += seq_len
         nb_sequences += 1
         lengths.append(seq_len)
-        #  Rapport de base
+        # Rapport de base
         # Déclaration et Initialisation des bases
-        # Parcourir notre fichier fasta et lit la séquence
         # Parcours la séquence (record.seq issue de l'objet Seqreccord)
         base_counts.update(seq)  # majuscules pour harmoniser
         base_report = " "
@@ -320,7 +324,7 @@ def stats_seq(file_path):
     # Ci-joint le statistisque détaillé sur les sequences du fichiers :)
     # Texte à afficher et enregistrer
     stats_text = (
-        "\nStatistiques des séquences : \n"
+        "\nStatistiques complètes des séquences : \n"
         f"Nombre total de séquences : {nb_sequences}\n"
         f"Longueur totale du fichier : {total_length}\n"
         f"Teneur globale en GC : {global_gc_percent:.2f}%\n"
@@ -347,7 +351,7 @@ def stats_seq(file_path):
         print("Erreur lors de l'enregistrement du fichier.")
 
 
-# La conversion de fichier FASTQ et fichier FASTA
+# 9- La conversion de fichier FASTQ et fichier FASTA
 def conversion_format(input_file):
     # Récupération du fichier en argument
     input_file = sys.argv[1]
@@ -399,7 +403,7 @@ def main():
 
     Pour executer GenoTools : python3 GenoTools filename
 
-    filename    peut une fichier .fasta, fasta.gz; .fastq, .fastq.gz
+    Le nom de fichier (filename) peut correspondre à un fichier de type .fasta, .fasta.gz, .fastq ou .fastq.gz
 
     La première commande de GenoTools  permet de faire : 
 
@@ -440,6 +444,8 @@ def main():
     print("7. Rechercher la sous sequences de la sequence choisie")
     print("8. Rechercher le statistique complète du choisie")
     print("9. Convertion d'un fichier FASTQ en un fichier FASTA")
+    print("\n")
+
 
 
     #  Choix de l'utilisateur
@@ -540,7 +546,4 @@ if __name__ == "__main__":
         help()
     else:
         main()
-
-
-
 
